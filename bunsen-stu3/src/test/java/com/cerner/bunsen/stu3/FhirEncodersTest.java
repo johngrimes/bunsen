@@ -17,6 +17,7 @@ import org.apache.spark.sql.functions;
 import org.hl7.fhir.dstu3.model.Annotation;
 import org.hl7.fhir.dstu3.model.Coding;
 import org.hl7.fhir.dstu3.model.Condition;
+import org.hl7.fhir.dstu3.model.Coverage;
 import org.hl7.fhir.dstu3.model.DateTimeType;
 import org.hl7.fhir.dstu3.model.ImagingStudy;
 import org.hl7.fhir.dstu3.model.IntegerType;
@@ -65,6 +66,10 @@ public class FhirEncodersTest {
   private static Dataset<ImagingStudy> imagingStudyDataset;
   private static ImagingStudy decodedImagingStudy;
 
+  private static Coverage coverage = TestData.newCoverage();
+  private static Dataset<Coverage> coverageDataset;
+  private static Coverage decodedCoverage;
+
   /**
    * Set up Spark.
    */
@@ -94,6 +99,9 @@ public class FhirEncodersTest {
     imagingStudyDataset = spark
         .createDataset(ImmutableList.of(imagingStudy), encoders.of(ImagingStudy.class));
     decodedImagingStudy = imagingStudyDataset.head();
+
+    coverageDataset = spark.createDataset(ImmutableList.of(coverage), encoders.of(Coverage.class));
+    decodedCoverage = coverageDataset.head();
   }
 
   /**
@@ -349,5 +357,13 @@ public class FhirEncodersTest {
         imagingStudyDataset.select("uid").head().get(0));
     Assert.assertEquals(imagingStudy.getUid(),
         decodedImagingStudy.getUid());
+  }
+
+  @Test
+  public void testPrimitiveClassDecoding() {
+    Assert.assertEquals(coverage.getGrouping().getClass_(),
+        coverageDataset.select("grouping.class").head().get(0));
+    Assert.assertEquals(coverage.getGrouping().getClass_(),
+        decodedCoverage.getGrouping().getClass_());
   }
 }
